@@ -1,7 +1,238 @@
 package numbers;
 
+import java.util.*;
+
+public class Main extends DataProcessing {
+
+    static boolean isExit = false;
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Welcome to Amazing Numbers!" + "\n");
+        DisplayingMessages.printInstructions();
+
+        while (!isExit) {
+            int invalidProperties = 0;
+
+            System.out.print("\n" + "Enter a request: ");
+
+            String stringInput = scanner.nextLine().trim();
+            String[] inputData = stringInput.split("\\s+");
+
+            long number = getNumeric(inputData[0]);
+
+            int lengthList = (int) getNumeric(inputData.length > 1 ? inputData[1] : "0");
+
+            String[] enteredProperties = new String[inputData.length < 2 ? 0 : inputData.length - 2];
+            int[] indexesPropertyValues = new int[enteredProperties.length];
+
+            for (int i = 0; i < enteredProperties.length; i++) {
+                enteredProperties[i] = inputData[i + 2].toUpperCase();
+                indexesPropertyValues[i] = getIndexOf(enteredProperties[i]);
+                invalidProperties = indexesPropertyValues[i] != PROPERTIES.length
+                        ? invalidProperties : invalidProperties + 1;
+            }
+            UserInteraction.displayResults(inputData, number, lengthList, enteredProperties,
+                    indexesPropertyValues, stringInput, invalidProperties);
+        }
+        scanner.close();
+    }
+}
+
+class UserInteraction extends DisplayingMessages {
+    public static void displayResults(String[] inputData, long number, int lengthList, String[] enteredProperties,
+                                      int[] indexesPropertyValues,String stringInput, int invalidProperties) {
+        System.out.println();
+        if (number == 0) {
+            System.out.println("Goodbye!");
+            isExit = true;
+        } else if (inputData[0].isEmpty()) {
+            printInstructions();
+        } else if (number < 0) {
+            System.out.println("The first parameter should be a natural number or zero.");
+        } else if (lengthList < 0) {
+            System.out.println("The second parameter should be a natural number.");
+        } else if (invalidProperties > 0) {
+            printErrorInvalidProperties(enteredProperties, indexesPropertyValues, invalidProperties);
+        } else if (isMutuallyExclusiveNumbers(stringInput,
+                PROPERTIES[0], PROPERTIES[1], PROPERTIES[3],
+                PROPERTIES[6], PROPERTIES[7], PROPERTIES[8])) {
+            printErrorMutuallyExclusiveNumbers(enteredProperties);
+        } else if (enteredProperties.length != 0) {
+            long[] numbersByProperties = getNumbersWithGivenProperties(number, lengthList, indexesPropertyValues);
+            for (long num : numbersByProperties) printProperties(num, lengthList);
+        } else if (lengthList > 0) {
+            for (long i = number; i < number + lengthList; i++) printProperties(i, lengthList);
+        } else {
+            printProperties(number, lengthList);
+        }
+    }
+}
+
+class DataProcessing extends NumberProperties {
+    static long getNumeric(String string) {
+        try {
+            return Long.parseLong(string);
+        } catch (Exception e) {
+            return  -1;
+        }
+    }
+
+    public static int getIndexOf(String enteredProperty) {
+        int indexPropertyName = PROPERTIES.length;
+        for (int i = 0; i < PROPERTIES.length; i++) {
+            indexPropertyName = enteredProperty.equals(PROPERTIES[i]) ? i : indexPropertyName;
+        }
+        return indexPropertyName;
+    }
+
+    public static long[] getNumbersWithGivenProperties(long number, int lengthList, int[] indexesPropertyValues) {
+        long[] numbers = new long[lengthList];
+        for (int i = 0; i < lengthList;) {
+            boolean checkProperty = true;
+            for (int index : indexesPropertyValues) {
+                if (!getAllPropertiesValue(number)[index]) {
+                    checkProperty = false;
+                    break;
+                }
+            }
+            if (checkProperty) {
+                numbers[i] = number;
+                i++;
+            }
+            number++;
+        }
+        return numbers;
+    }
+
+    static boolean isMutuallyExclusiveNumbers(String stringInput, String... properties) {
+        int count = 0;
+        for (String property : properties) {
+            count = stringInput.toUpperCase().contains(property) ? count + 1 : 0;
+            if (count == 2) break;
+        }
+        return count == 2;
+    }
+}
+
+class DisplayingMessages extends Main {
+    public static void printInstructions() {
+        System.out.println("Supported requests:\n" +
+                "- enter a natural number to know its properties;\n" +
+                "- enter two natural numbers to obtain the properties of the list:\n" +
+                "  * the first parameter represents a starting number;\n" +
+                "  * the second parameter shows how many consecutive numbers are to be processed;\n" +
+                "- two natural numbers and properties to search for;\n" +
+                "- separate the parameters with one space;\n" +
+                "- enter 0 to exit.\n");
+    }
+
+    public static void printProperties(long number, int lengthList) {
+        if (lengthList == 0) {
+            System.out.printf("Properties of %,d\n", number);
+            for (int i = 0; i < PROPERTIES.length; i++) {
+                System.out.printf("%12s: %b%n", PROPERTIES[i].toLowerCase(), getAllPropertiesValue(number)[i]);
+            }
+        } else {
+            StringBuilder propertiesToString = new StringBuilder();
+            for (int i = 0; i < PROPERTIES.length; i++) {
+                propertiesToString.append(getAllPropertiesValue(number)[i] ? PROPERTIES[i].toLowerCase() + ", " : "");
+            }
+            System.out.printf("%,16d is %s%n", number, propertiesToString.substring(0, propertiesToString.length() - 2));
+        }
+    }
+
+    public static void printErrorInvalidProperties(String[] enteredProperties, int[] indexesPropertyValues, int invalidProperties) {
+        for (int i = 0; i < enteredProperties.length; i++) {
+            if (indexesPropertyValues[i] == PROPERTIES.length && invalidProperties < 2) {
+                System.out.printf("The property [%s] is wrong.\nAvailable PROPERTIES: %s\n",
+                        enteredProperties[i], Arrays.toString(PROPERTIES));
+            } else if (invalidProperties > 1) {
+                System.out.printf("The PROPERTIES %s are wrong.\nAvailable PROPERTIES: %s\n",
+                        Arrays.toString(enteredProperties), Arrays.toString(PROPERTIES));
+                break;
+            }
+        }
+    }
+
+    public static void printErrorMutuallyExclusiveNumbers(String[] enteredProperties) {
+        System.out.print("The request contains mutually exclusive PROPERTIES: ");
+        for (int i = 0; i < enteredProperties.length; i++) {
+            System.out.print(enteredProperties[i] + " ");
+        }
+        System.out.println("There are no numbers with these PROPERTIES.");
+        
+    }
+}
+
+class NumberProperties {
+    final static String[] PROPERTIES = {"EVEN", "ODD", "BUZZ", "DUCK", "PALINDROMIC",
+            "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING"};
+
+    static boolean[] getAllPropertiesValue(long number) {
+        return new boolean[]{isEven(number), !isEven(number), isBuzz(number),
+                isDuck(number), isPalindrome(number), isGapful(number),
+                isSpy(number), isSquare(number), isSunny(number), isJumping(number)};
+    }
+
+    static boolean isSpy(long number) {
+        String[] str = String.valueOf(number).split("");
+        int nSum = 0;
+        int nProd = 1;
+        for (String s : str) {
+            nSum += Integer.parseInt(s);
+            nProd *= Integer.parseInt(s);
+        }
+        return nSum == nProd;
+    }
+
+    static boolean isJumping(long number) {
+        String[] str = String.valueOf(number).split("");
+        for (int i = 0; i < str.length - 1; i++) {
+            if (Math.abs(Long.parseLong(str[i]) - Long.parseLong(str[i + 1])) != 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static boolean isPalindrome(long number) {
+        StringBuilder sb = new StringBuilder(String.valueOf(number));
+        return sb.substring(0, sb.length() / 2).equals(sb.reverse().substring(0, sb.length() / 2));
+    }
+
+    static boolean isGapful(long number) {
+        String[] str = String.valueOf(number).split("");
+        return number / 100 > 0 && number % Integer.parseInt(str[0] + str[str.length - 1]) == 0;
+    }
+
+    static boolean isEven(long number) {
+        return (number % 2 == 0);
+    }
+
+    static boolean isBuzz(long number) {
+        return (number % 7 == 0 || number % 10 == 7);
+    }
+
+    static boolean isDuck(long number) {
+        return String.valueOf(number).substring(1).contains("0");
+    }
+
+    static boolean isSquare(long number) {
+        return number % Math.sqrt(number) == 0;
+    }
+
+    static boolean isSunny(long number) {
+        return (number + 1) % Math.sqrt(number + 1) == 0;
+    }
+}
+/*
+package numbers;
+
 import org.w3c.dom.ls.LSOutput;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -15,19 +246,17 @@ public class Main {
 
     public static void main(String[] args) {
 
-        System.out.println("Welcome to Amazing Numbers!\n" +
-                "\n" +
-                "Supported requests:\n" +
+        System.out.println("Welcome to Amazing Numbers!\n\nSupported requests:\n" +
                 "- enter a natural number to know its properties;\n" +
                 "- enter two natural numbers to obtain the properties of the list:\n" +
                 "  * the first parameter represents a starting number;\n" +
-                "  * the second parameters show how many consecutive numbers are to be processed;\n" +
-                "- two natural numbers and two properties to search for;\n" +
+                "  * the second parameter shows how many consecutive numbers are to be printed;\n" +
+                "- two natural numbers and properties to search for;\n" +
                 "- separate the parameters with one space;\n" +
                 "- enter 0 to exit.");
 
         Scanner scanner = new Scanner(System.in);
-        long numberFirst = 0;
+         long numberFirst = 0L;
         do {
             System.out.println("Enter a request: ");
             String number = scanner.nextLine();
@@ -38,9 +267,7 @@ public class Main {
             } catch (NumberFormatException e) {
                 System.out.println("Ошибка");
             }
-            if (numbers.length > 4) {
-                System.out.println("Не корректный ввод");
-            } else if (numbers.length == 2) {
+            if (numbers.length == 2) {
                 if (checkIfNatural((numbers))) {
                     continue;
                 }
@@ -48,16 +275,19 @@ public class Main {
                 for (long i = Long.parseLong(numbers[0]); i < Long.parseLong(numbers[0]) + Long.parseLong(numbers[1]); i++) {
                     Methods(i, 2);
                 }
-            } else if (numbers.length == 3) {
+            }
+             else if (numbers.length >= 3) {
 
                 if (checkIfNatural((numbers))) {
                     continue;
                 }
-
                 long startNumber = Long.parseLong(numbers[0]);
                 long kolvoNumbers = Long.parseLong(numbers[1]);
-                String[] property = new String[1];
-                property[0] = numbers[2].toLowerCase(Locale.ROOT);
+                String[] property = new String[numbers.length - 2];
+                for (int i = 0; i < property.length; i++) {
+                    property[i] = numbers[2 + i].toLowerCase(Locale.ROOT);
+                }
+
                 int count = 0;
                 long tempNum = startNumber;
                 while (count < kolvoNumbers) {
@@ -65,32 +295,16 @@ public class Main {
 
                         count++;
                     }
-                    tempNum++;
-                }
-            } else if (numbers.length == 4) {
-
-                if (checkIfNatural((numbers))) {
-                    continue;
-                }
-                long startNumber = Long.parseLong(numbers[0]);
-                long kolvoNumbers = Long.parseLong(numbers[1]);
-                String[] property = new String[2];
-                property[0] = numbers[2].toLowerCase(Locale.ROOT);
-                property[1] = numbers[3].toLowerCase(Locale.ROOT);
-                int count = 0;
-                long tempNum = startNumber;
-                while (count < kolvoNumbers) {
-                    if (Methods(tempNum, property)) {
-
-                        count++;
-                    }
+                    //System.out.println("temp Num " + tempNum);
                     tempNum++;
                 }
             } else {
                 try {
-                    numberFirst = Long.parseLong(numbers[0]);
+
                     if (numberFirst == 0) break;
-                    checkIfNatural(numberFirst);
+                    String[] temp = new String[1];
+                    temp[0] = numbers[0];
+                    checkIfNatural(temp);
                     if (!isNatural) continue;
                     Methods(numberFirst, 1);
                 } catch (NumberFormatException e) {
@@ -102,8 +316,30 @@ public class Main {
         System.out.println("Goodbye!");
     }
 
+    public static boolean isJumping(long number) {
+        boolean isJumping = true;
+        int countDigits = 0;
+        ArrayList<Integer> digits = new ArrayList<Integer>();
+        while (number > 0) {
+            int lastDigit = (int) (number % 10);
+            digits.add(lastDigit);
+            countDigits++;
+            number /= 10;
+        }
+        for (int i = 0; i < digits.size() - 1; i++) {
+            if (Math.abs(digits.get(i) - digits.get(i + 1)) != 1) {
+                isJumping = false;
+                break;
+            }
+        }
+        return isJumping;
+
+    }
+
     static void Methods(long numberFirst, int param) {
-        checkIfNatural(numberFirst);
+        String[] temp = new String[1];
+        temp[0] = String.valueOf(numberFirst);
+        checkIfNatural(temp);
         checkIfOddOrEven(numberFirst);
         if (param == 1) {
 
@@ -116,6 +352,7 @@ public class Main {
             System.out.println("\tspy: " + checkIfSpy(numberFirst));
             System.out.println("\tsunny: " + checkIfSunny(numberFirst));
             System.out.println("\tsquare: " + checkIfSquare(numberFirst));
+            System.out.println("\tjumping: " + isJumping(numberFirst));
         } else {
 
             StringBuilder builder = new StringBuilder(numberFirst + " is ");
@@ -129,6 +366,7 @@ public class Main {
             if (checkIfSpy(numberFirst)) builder.append("spy, ");
             if (checkIfSunny(numberFirst)) builder.append("sunny, ");
             if (checkIfSquare(numberFirst)) builder.append("square, ");
+            if (isJumping(numberFirst)) builder.append("jumping, ");
             builder.delete(builder.length() - 2, builder.length());
             String res = builder.toString();
             System.out.println(res);
@@ -137,7 +375,9 @@ public class Main {
     }
 
     static boolean Methods(long numberFirst, String[] property) {
-        checkIfNatural(numberFirst);
+        String[] temp = new String[1];
+        temp[0] = String.valueOf(numberFirst);
+        checkIfNatural(temp);
         checkIfOddOrEven(numberFirst);
         boolean propertyIsFind = false;
         StringBuilder builder = new StringBuilder(numberFirst + " is ");
@@ -151,6 +391,7 @@ public class Main {
         if (checkIfSpy(numberFirst)) builder.append("spy, ");
         if (checkIfSunny(numberFirst)) builder.append("sunny, ");
         if (checkIfSquare(numberFirst)) builder.append("square, ");
+        if (isJumping(numberFirst)) builder.append("jumping, ");
 
         builder.delete(builder.length() - 2, builder.length());
 
@@ -160,13 +401,20 @@ public class Main {
             if (res.contains(property[i])) flag[i] = true;
         }
         //System.out.println(property[0] + " find or not " + flag[0] );
-        if (flag.length == 1 && flag[0]) {
-            System.out.println(res);
-            propertyIsFind = true;
-        } else if (flag.length == 2 && flag[0] && flag[1]) {
+        boolean resFlagProprty = true;
+        for (int i = 0; i < flag.length; i++) {
+
+            if (!flag[i]) {
+                resFlagProprty = false;
+                break;
+            }
+
+        }
+        if (resFlagProprty) {
             System.out.println(res);
             propertyIsFind = true;
         }
+
         return propertyIsFind;
     }
 
@@ -192,7 +440,7 @@ public class Main {
     public static boolean checkIfPropertyExits(String[] property) {
 
         boolean[] exits = new boolean[property.length];
-        String[] properties = new String[]{"odd", "even", "buzz", "gapful", "duck", "palindromic", "spy", "sunny", "square"};
+        String[] properties = new String[]{"odd", "even", "buzz", "gapful", "duck", "palindromic", "spy", "sunny", "square", "jumping"};
         for (int i = 0; i < property.length; i++) {
             for (String s : properties) {
                 if (property[i].compareTo(s) == 0) {
@@ -204,20 +452,19 @@ public class Main {
         boolean flag = true;
         if (exits.length == 1 && !exits[0]) {
             System.out.println("The property " + property[0] + " is wrong.\n" +
-                    "Available properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, EVEN, ODD]");
+                    "Available properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, EVEN, ODD, JUMPING]");
             flag = false;
-        }
-        else if (exits.length == 2 && (!exits[0] && !exits[1])) {
+        } else if (exits.length == 2 && (!exits[0] && !exits[1])) {
             System.out.println("The properties " + property[0] + ", " + property[1] + " are wrong.\n" +
-                    "Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]");
+                    "Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING]");
             flag = false;
-        }else if(exits.length == 2 && !exits[0]){
+        } else if (exits.length == 2 && !exits[0]) {
             System.out.println("The property " + property[0] + " is wrong.\n" +
-                    "Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]");
+                    "Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING]");
             flag = false;
-        }else if(exits.length == 2 && !exits[1]){
-            System.out.println("The property " + property[1]  + " is wrong.\n" +
-                    "Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]");
+        } else if (exits.length == 2 && !exits[1]) {
+            System.out.println("The property " + property[1] + " is wrong.\n" +
+                    "Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING]");
             flag = false;
         }
 
@@ -266,32 +513,36 @@ public class Main {
         isOdd = (userNumber % 2 != 0) ? true : false;
     }
 
-    static void checkIfNatural(long userNumber) {
+    */
+/*static void checkIfNatural(long userNumber) {
         isNatural = userNumber > 0 ? true : false;
 
         if (!isNatural) {
             System.out.println("The first parameter should be a natural number or zero.");
 
         }
-    }
+    }*//*
+
 
     static boolean checkIfNatural(String[] userNumber) {
         boolean IsNeedToReturnInput = false;
         boolean wasIn = false;
-        for (int i = 0; i < 2; i++) {
+        int granicha = 2;
+        if(userNumber.length == 1) granicha = 1;
+        for (int i = 0; i < granicha; i++) {
 
-                isNatural = Long.parseLong(userNumber[i]) > 0 ? true : false;
+            isNatural = Long.parseLong(userNumber[i]) > 0 ? true : false;
 
-                if (!isNatural && i == 0) {
-                    System.out.println("The first parameter should be a natural number or zero.");
-                    IsNeedToReturnInput = true;
-                    continue;
-                }
-                if (!isNatural && i == 1) {
-                    System.out.println("The second parameter should be a natural number or zero.");
-                    IsNeedToReturnInput = true;
+            if (!isNatural && i == 0) {
+                System.out.println("The first parameter should be a natural number or zero.");
+                IsNeedToReturnInput = true;
+                continue;
+            }
+            if (!isNatural && i == 1) {
+                System.out.println("The second parameter should be a natural number or zero.");
+                IsNeedToReturnInput = true;
 
-                }
+            }
             for (int j = 2; j < userNumber.length; j++) {
 
 
@@ -352,3 +603,4 @@ public class Main {
         return isBuzz = userNumber % 7 == 0 || userNumber % 10 == 7 ? true : false;
     }
 }
+*/
