@@ -1,10 +1,13 @@
 package numbers;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Main extends DataProcessing {
 
     static boolean isExit = false;
+    static public String[] wrongProperty = new String[2];
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -33,6 +36,7 @@ public class Main extends DataProcessing {
                 invalidProperties = indexesPropertyValues[i] != PROPERTIES.length
                         ? invalidProperties : invalidProperties + 1;
             }
+            //System.out.println("lengthList " + lengthList + " number " + number);
             UserInteraction.displayResults(inputData, number, lengthList, enteredProperties,
                     indexesPropertyValues, stringInput, invalidProperties);
         }
@@ -42,7 +46,7 @@ public class Main extends DataProcessing {
 
 class UserInteraction extends DisplayingMessages {
     public static void displayResults(String[] inputData, long number, int lengthList, String[] enteredProperties,
-                                      int[] indexesPropertyValues,String stringInput, int invalidProperties) {
+                                      int[] indexesPropertyValues, String stringInput, int invalidProperties) {
         System.out.println();
         if (number == 0) {
             System.out.println("Goodbye!");
@@ -55,13 +59,25 @@ class UserInteraction extends DisplayingMessages {
             System.out.println("The second parameter should be a natural number.");
         } else if (invalidProperties > 0) {
             printErrorInvalidProperties(enteredProperties, indexesPropertyValues, invalidProperties);
+
         } else if (isMutuallyExclusiveNumbers(stringInput,
-                PROPERTIES[0], PROPERTIES[1], PROPERTIES[3],
-                PROPERTIES[6], PROPERTIES[7], PROPERTIES[8])) {
-            printErrorMutuallyExclusiveNumbers(enteredProperties);
+                "ODD", "EVEN", "-ODD", "-EVEN", "ODD", "-ODD", "EVEN", "-EVEN", "PALINDROMIC", "-PALINDROMIC", "BUZZ", "-BUZZ", "DUCK", "-DUCK", "GAPFUL", "-GAPFUL", "SPY", "-SPY", "SQUARE", "-SQUARE", "SUNNY", "-SUNNY", "JUMPING", "-JUMPING", "HAPPY", "-HAPPY", "SAD", "-SAD", "ODD", "EVEN", "DUCK", "SPY", "SUNNY", "SQUARE")) {
+
+            //printErrorMutuallyExclusiveNumbers(enteredProperties);
+            printErrorMutuallyExclusiveNumbers(Main.wrongProperty);
         } else if (enteredProperties.length != 0) {
-            long[] numbersByProperties = getNumbersWithGivenProperties(number, lengthList, indexesPropertyValues);
-            for (long num : numbersByProperties) printProperties(num, lengthList);
+            int countOperation = 0;
+            if (lengthList == 1 && countOperation < 30) {
+                long[] numbersByProperties = getNumbersWithGivenProperties(number, lengthList, indexesPropertyValues);
+                //System.out.println("numbersByProperties " + numbersByProperties[0] );
+                countOperation++;
+                for (long num : numbersByProperties) printProperties(num, lengthList);
+            } else if (lengthList != 1) {
+                long[] numbersByProperties = getNumbersWithGivenProperties(number, lengthList, indexesPropertyValues);
+                //System.out.println("numbersByProperties " + numbersByProperties[0] );
+
+                for (long num : numbersByProperties) printProperties(num, lengthList);
+            }
         } else if (lengthList > 0) {
             for (long i = number; i < number + lengthList; i++) printProperties(i, lengthList);
         } else {
@@ -75,7 +91,7 @@ class DataProcessing extends NumberProperties {
         try {
             return Long.parseLong(string);
         } catch (Exception e) {
-            return  -1;
+            return -1;
         }
     }
 
@@ -89,7 +105,7 @@ class DataProcessing extends NumberProperties {
 
     public static long[] getNumbersWithGivenProperties(long number, int lengthList, int[] indexesPropertyValues) {
         long[] numbers = new long[lengthList];
-        for (int i = 0; i < lengthList;) {
+        for (int i = 0; i < lengthList; ) {
             boolean checkProperty = true;
             for (int index : indexesPropertyValues) {
                 if (!getAllPropertiesValue(number)[index]) {
@@ -108,11 +124,103 @@ class DataProcessing extends NumberProperties {
 
     static boolean isMutuallyExclusiveNumbers(String stringInput, String... properties) {
         int count = 0;
-        for (String property : properties) {
-            count = stringInput.toUpperCase().contains(property) ? count + 1 : 0;
-            if (count == 2) break;
+        /*if (builder.toString().compareTo("sunny, square") == 0 || builder.toString().compareTo("square, sunny") == 0 || builder.toString().compareTo("even, odd") == 0 || builder.toString().compareTo("odd, even") == 0 || builder.toString().compareTo("duck, spy") == 0 || builder.toString().compareTo("spy, duck") == 0) {
+            System.out.println("The request contains mutually exclusive properties: " + builder + "\n" +
+                    "There are no numbers with these properties.");
+            IsNeedToReturnInput = true;
+        }*/
+        ArrayList<String[]> finalList = new ArrayList<>();
+        for (int i = 0; i < properties.length; i += 2) {
+            String[] str1 = new String[2];
+            str1[0] = properties[i];
+            str1[1] = properties[i + 1];
+            //System.out.println(str1[0] + " " + str1[1]);
+            finalList.add(str1);
         }
-        return count == 2;
+
+
+        stringInput = stringInput.toUpperCase();
+        String[] tstr = stringInput.split(" ");
+        ArrayList<String> list = new ArrayList<>();
+        //System.out.println("Список переданных свойств");
+        for (int i = 2; i < tstr.length; i++) {
+            list.add(tstr[i]);
+            //System.out.println(tstr[i]);
+        }
+        ArrayList<String> compare = new ArrayList<>();
+
+        for (int j = 0; j < list.size(); j++) {
+            if (!compare.contains(list.get(j))) {
+                compare.add(list.get(j));
+            }
+        }
+        //System.out.println("Список переданных свойств");
+        /*for (int i = 0; i < compare.size(); i++) {
+
+            System.out.println(compare.get(i));
+        }*/
+       /* //множество с дубликатами
+         HashSet<String> duplicates = new HashSet<>();
+//множество для отслеживания повторяющихся элементов
+         Set<String> tracking = new HashSet<>();
+//пробегаемся по всем пользователям
+        for (String user: list) {
+            //добавляем их во множество для отслеживания
+            //если не получилось добавить, то значит пользователь уже встречался в списке
+            if (!tracking.add(user)) {
+                //в этом случае добавляем его во множество дубликатов
+                duplicates.add(user);
+            }
+        }*/
+        /**
+         * Convert Set to List
+         */
+        // List<String> list2 = new ArrayList<String>( duplicates );
+        // System.out.println(" list2.size() = " + list2.size());
+        if (compare.size() != 0) {
+            for (int i = 0; i < finalList.size(); i++) {
+                String[] tyu = new String[2];
+                tyu = finalList.get(i);
+            /*String property1 = tyu[0];
+            String property2 = tyu[1];*/
+
+                for (int j = 0; j < compare.size(); j++) {
+                    try {
+                        if (compare.get(j).compareTo(tyu[0]) == 0) {
+                            Main.wrongProperty[0] = tyu[0];
+                            count++;
+                        }
+                        if (compare.get(j).compareTo(tyu[1]) == 0) {
+                            Main.wrongProperty[1] = tyu[1];
+                            count++;
+                        }
+                    } catch (NullPointerException e) {
+                        //System.out.println("error");
+                    }
+
+                }
+                if (count == 2) {
+
+                    return true;
+                }
+                count = 0;
+            }
+        }
+       /* if (
+                (stringInput.contains("ODD") && stringInput.contains("-ODD")) || (stringInput.contains("EVEN") && stringInput.contains("-EVEN")) ||
+                        (stringInput.contains("PALINDROMIC") && stringInput.contains("-PALINDROMIC")) || (stringInput.contains("BUZZ") && stringInput.contains("-BUZZ")) ||
+                        (stringInput.contains("DUCK") && stringInput.contains("-DUCK")) || (stringInput.contains("GAPFUL") && stringInput.contains("-GAPFUL")) || (stringInput.contains("SPY") && stringInput.contains("-SPY")) || (stringInput.contains("SQUARE") && stringInput.contains("-SQUARE")) || (stringInput.contains("SUNNY") && stringInput.contains("-SUNNY")) ||
+                        (stringInput.contains("JUMPING") && stringInput.contains("-JUMPING")) || (stringInput.contains("HAPPY") && stringInput.contains("-HAPPY")) || (stringInput.contains("SAD") && stringInput.contains("-SAD")) || (stringInput.contains("ODD") && stringInput.contains("EVEN")) || (stringInput.contains("DUCK") && stringInput.contains("SPY")) || (stringInput.contains("SUNNY") && stringInput.contains("SQUARE"))) {
+            return true;
+        }*/
+        /*for (String property : properties) {
+            System.out.println( " str input " + stringInput + " property = " + property);
+            count = stringInput.toUpperCase().contains(property) ? count + 1 : count + 0;
+            System.out.println("\ncount " + count);
+            if (count == 2) break;
+        }*/
+        //return count == 2; // если да то выведет ошибку свойств
+        return false;
     }
 }
 
@@ -124,6 +232,7 @@ class DisplayingMessages extends Main {
                 "  * the first parameter represents a starting number;\n" +
                 "  * the second parameter shows how many consecutive numbers are to be processed;\n" +
                 "- two natural numbers and properties to search for;\n" +
+                "- a property preceded by minus must not be present in numbers;\n" +
                 "- separate the parameters with one space;\n" +
                 "- enter 0 to exit.\n");
     }
@@ -131,12 +240,12 @@ class DisplayingMessages extends Main {
     public static void printProperties(long number, int lengthList) {
         if (lengthList == 0) {
             System.out.printf("Properties of %,d\n", number);
-            for (int i = 0; i < PROPERTIES.length; i++) {
+            for (int i = 0; i < PROPERTIES.length - 12; i++) {
                 System.out.printf("%12s: %b%n", PROPERTIES[i].toLowerCase(), getAllPropertiesValue(number)[i]);
             }
         } else {
             StringBuilder propertiesToString = new StringBuilder();
-            for (int i = 0; i < PROPERTIES.length; i++) {
+            for (int i = 0; i < PROPERTIES.length - 12; i++) {
                 propertiesToString.append(getAllPropertiesValue(number)[i] ? PROPERTIES[i].toLowerCase() + ", " : "");
             }
             System.out.printf("%,16d is %s%n", number, propertiesToString.substring(0, propertiesToString.length() - 2));
@@ -161,19 +270,25 @@ class DisplayingMessages extends Main {
         for (int i = 0; i < enteredProperties.length; i++) {
             System.out.print(enteredProperties[i] + " ");
         }
-        System.out.println("There are no numbers with these PROPERTIES.");
-        
+        System.out.println("\nThere are no numbers with these PROPERTIES.");
+
     }
 }
 
 class NumberProperties {
     final static String[] PROPERTIES = {"EVEN", "ODD", "BUZZ", "DUCK", "PALINDROMIC",
-            "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING"};
+            "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING", "HAPPY", "SAD", "-EVEN", "-ODD",
+            "-BUZZ", "-DUCK", "-PALINDROMIC",
+            "-GAPFUL", "-SPY", "-SQUARE", "-SUNNY", "-JUMPING", "-HAPPY", "-SAD"};
 
     static boolean[] getAllPropertiesValue(long number) {
         return new boolean[]{isEven(number), !isEven(number), isBuzz(number),
                 isDuck(number), isPalindrome(number), isGapful(number),
-                isSpy(number), isSquare(number), isSunny(number), isJumping(number)};
+                isSpy(number), isSquare(number), isSunny(number), isJumping(number), isHappy(number), !isHappy(number),
+                !isEven(number), isEven(number), !isBuzz(number),
+                !isDuck(number), !isPalindrome(number), !isGapful(number),
+                !isSpy(number), !isSquare(number), !isSunny(number), !isJumping(number), !isHappy(number), isHappy(number)
+        };
     }
 
     static boolean isSpy(long number) {
@@ -193,6 +308,38 @@ class NumberProperties {
             if (Math.abs(Long.parseLong(str[i]) - Long.parseLong(str[i + 1])) != 1) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    static boolean isHappy(long number) {
+        //System.out.println("isHappy " + number);
+        long temp = number;
+        boolean flag = false;
+
+        while (!flag) {
+
+
+            ArrayList<Long> list = new ArrayList<Long>();
+            long temp2 = temp;
+            while (temp2 > 0) {
+                list.add(temp2 % 10);
+                temp2 /= 10;
+            }
+            long sum = 0;
+            for (int i = 0; i < list.size(); i++) {
+                sum += list.get(i) * list.get(i);
+            }
+            //System.out.println("sum = " + sum);
+            if (sum == 1 || sum == 10 || sum == 100) {
+                flag = true;
+            }
+            if (sum == 4 || sum == 16 || sum == 37 || sum == 58 || sum == 89 || sum == 145 || sum == 42 || sum == 20) {
+
+                return false;
+            }
+            temp = sum;
+
         }
         return true;
     }
