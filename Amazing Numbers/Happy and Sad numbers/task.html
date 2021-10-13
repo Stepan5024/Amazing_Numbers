@@ -1,10 +1,10 @@
-<h2>Description</h2>
+<h5>Description</h5>
 
 <p>In number theory, a <strong>happy </strong>number is a number that reaches 1 after a sequence during which the number is replaced by the sum of each digit squares. For example, 13 is a happy number, as 1<sup>2 </sup>+ 3<sup>2</sup> = 10<strong> </strong>which leads to 1<sup>2</sup> + 0<sup>2</sup> = 1. On the other hand, 4 is not a happy number because the sequence starts with 4<sup>2</sup> = 16, 1<sup>2</sup> + 6<sup>2</sup> = 37, and finally reaches 2<sup>2</sup> + 0<sup>2</sup> = 4. This is the number that started the sequence, so the process goes on in an infinite cycle. A number that is not happy is called <strong>Sad</strong> (or <strong>Unhappy</strong>).</p>
 
 <p>Our program is finished. It can indicate many interesting properties of numbers, it knows how to calculate them. Now, when prompted, a user can have a list of number properties. To complete the program, let's add an ability to exclude a property from the search query. If a user puts a <strong>minus </strong>(<code class="java">-</code>) before the property, exclude this property from the search query. For example, if a user specifies <code class="java">palindromic -duck</code>, it means that they are looking for Palindromic numbers that are not Ducks.</p>
 
-<h2>Objectives</h2>
+<h5>Objectives</h5>
 
 <p>Your program should process the user requests. In this stage, your program should:</p>
 
@@ -26,7 +26,7 @@
 
 <p>In this stage, property names include <code class="java">even</code>, <code class="java">odd</code>, <code class="java">buzz</code>, <code class="java">duck</code>, <code class="java">palindromic</code>, <code class="java">gapful</code>, <code class="java">spy</code>, <code class="java">sunny</code>, <code class="java">square</code>, <code class="java">jumping</code>, <code class="java">sad</code>, and <code class="java">happy</code>. Mutually exclusive properties are <strong>even/odd</strong>, <strong>duck/spy</strong>, <strong>sunny/square</strong>, <strong>sad/happy </strong>pairs, as well as direct opposites (<code class="java">property</code> and <code class="java">-property</code>). The test won't check the order of properties, their indentation, and spaces. You may format numbers as you like.</p>
 
-<h3>Instructions</h3>
+<h5>Instructions</h5>
 
 <pre><code class="language-no-highlight">Supported requests:
 - enter a natural number to know its properties;
@@ -38,7 +38,7 @@
 - separate the parameters with one space;
 - enter 0 to exit.</code></pre>
 
-<h3>Error messages</h3>
+<h5>Error messages</h5>
 
 <pre><code class="language-no-highlight">The first parameter should be a natural number or zero.</code></pre>
 
@@ -61,7 +61,7 @@ There are no numbers with these properties.</code></pre>
 <pre><code class="language-no-highlight">The request contains mutually exclusive properties: [GAPFUL, -GAPFUL]
 There are no numbers with these properties.</code></pre>
 
-<h2>Examples</h2>
+<h5>Examples</h5>
 
 <p>The greater-than symbol followed by a space (<code class="java">&gt; </code>) represents the user input. Note that it's not part of the input.</p>
 
